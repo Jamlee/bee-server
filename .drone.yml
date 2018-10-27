@@ -2,14 +2,14 @@
 pipeline:
   build:
     privileged: true
-    image: rancher/dapper:1.11.2
+    image: jamlee/dapper:1.11.2
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     commands:
     - dapper ci
 
   stage-binaries:
-    image: rancher/dapper:1.11.2
+    image: jamlee/dapper:1.11.2
     commands:
     - cp -r ./bin/* ./package/
     when:
@@ -20,7 +20,7 @@ pipeline:
   publish-image:
     image: plugins/docker
     dockerfile: package/Dockerfile
-    repo: rancher/game-server
+    repo: jamlee/bee-server
     context: package/
     tag: ${DRONE_TAG}
     secrets: [docker_username, docker_password]

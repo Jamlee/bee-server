@@ -1,4 +1,4 @@
-game-server
+bee-server
 ========
 
 ## ***FILL THIS OUT WITH A USEFUL DESCRIPTION OF THIS REPO***
@@ -10,10 +10,10 @@ game-server
 
 ## Running
 
-`./bin/game-server`
+`./bin/bee-server`
 
 ## License
-Copyright (c) 2018 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2018 [jamlee Labs, Inc.](http://jamlee.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

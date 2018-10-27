@@ -1,0 +1,2 @@
+FROM bee-server:master
+COPY . /go/src/github.com/jamlee/bee-server/
