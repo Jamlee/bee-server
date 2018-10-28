@@ -1,14 +1,14 @@
 package main
 
 import (
-	"os"
 	"strconv"
 	"fmt"
+	"os"
 
-	"github.com/jamlee/bee-server/server"
 	"github.com/sirupsen/logrus"
+	"github.com/jamlee/bee-server/server"
+	"github.com/jamlee/bee-server/worker"
 	"github.com/urfave/cli"
-	"github.com/hashicorp/consul/api"
 )
 
 var VERSION = "v0.0.0-dev"
@@ -22,50 +22,36 @@ func main() {
     {
       Name:    "server",
       Aliases: []string{"s"},
-			Usage:   "run as a server mode",
+			Usage:   "run as a server role",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "address", Value: "127.0.0.1", Usage: "listen address",},
-				cli.StringFlag{Name: "id", Value: "0001", Usage: "must special different id",},
-				cli.IntFlag{Name: "port", Value: 10001, Usage: "listen port",},
+				cli.IntFlag{Name: "web-port", Value: 10001, Usage: "listen port",},
+				cli.IntFlag{Name: "master-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
-				registerMaster(c.String("address"), c.Int("port"), c.String("id"))
-				server.RunControlEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("port"))))
+				server.RegisterMaster(c.String("address"), c.Int("master-port"))
+				server.RunMasterEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("master-port"))))
+				server.RunControlEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
         return nil
       },
 		},
 		{
-      Name:    "room",
-      Aliases: []string{"r"},
-      Usage:   "run as a room mode",
-      Action:  func(c *cli.Context) error {
-        return nil
+      Name:    "worker",
+      Aliases: []string{"w"},
+			Usage:   "run as a worker role",
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "address", Value: "127.0.0.1", Usage: "listen address",},
+				cli.IntFlag{Name: "worker-port", Value: 10003, Usage: "listen port",},
       },
+      Action:  func(c *cli.Context) error {
+				worker.RegisterWorker(c.String("address"), c.Int("worker-port"))
+				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("worker-port"))))
+				return nil
+			},
 		},
 	}
+
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
-}
-
-func registerMaster(address string, port int, id string) {
-	serviceDef := &api.AgentServiceRegistration{
-		Kind: "bee-server",
-		ID: id,
-		Name: "control-server",
-		Tags: []string{"server"},
-		Port: port,
-		Address: address,
-	}
-
-	client, err := api.NewClient(api.DefaultConfig())
-	if err != nil {
-		panic(err)
-	}
-	agent := client.Agent()
-	err = agent.ServiceRegister(serviceDef)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	logrus.Info("register to etcd successful")
 }
