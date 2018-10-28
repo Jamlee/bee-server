@@ -41,6 +41,7 @@ func RunMasterEndpoint(peerAddress string) {
 				logrus.Debug("server accepted")
 			case *pkg.Ping:
 				logrus.Debugf("client recv %+v\n", msg)
+				ev.Session().Send(pkg.NewPong())
 			case *cellnet.SessionClosed:
 				logrus.Debugf("session closed: ", ev.Session().ID())
 			}
