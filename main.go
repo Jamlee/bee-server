@@ -6,9 +6,16 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
+
+	// init the cellnet lib global variable
+	_ "github.com/davyxu/cellnet/codec/json"
+	_ "github.com/davyxu/cellnet/codec/binary"
+	_ "github.com/davyxu/cellnet/proc/http"
+	_ "github.com/davyxu/cellnet/peer/tcp"
+	_ "github.com/davyxu/cellnet/proc/tcp"
 	"github.com/jamlee/bee-server/server"
 	"github.com/jamlee/bee-server/worker"
-	"github.com/urfave/cli"
 )
 
 var VERSION = "v0.0.0-dev"
@@ -18,6 +25,16 @@ func main() {
 	app.Name = "bee-server"
 	app.Version = VERSION
 	app.Usage = "bee-server is a distrbuted server framework for real time game"
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{Name: "d", Usage: "open debug log",},
+	}
+	app.Authors = []cli.Author{
+		cli.Author{
+			Name:  "jamlee",
+			Email: "jamlee@jamlee.cn",
+		},
+	}
+	app.Copyright = "(c) 2018 Jam Lee"
 	app.Commands = []cli.Command{
     {
       Name:    "server",
@@ -40,16 +57,20 @@ func main() {
       Aliases: []string{"w"},
 			Usage:   "run as a worker role",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "address", Value: "127.0.0.1", Usage: "listen address",},
-				cli.IntFlag{Name: "worker-port", Value: 10003, Usage: "listen port",},
+				cli.StringFlag{Name: "server-address", Value: "127.0.0.1", Usage: "listen address",},
+				cli.IntFlag{Name: "server-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
-				worker.RegisterWorker(c.String("address"), c.Int("worker-port"))
-				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("worker-port"))))
+				worker.RegisterWorker(c.String("server-address"), c.Int("server-port"))
+				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("server-address"), strconv.Itoa(c.Int("server-port"))))
 				return nil
 			},
 		},
 	}
+	app.Before = func(c *cli.Context) error {
+		logrus.SetLevel(logrus.WarnLevel)
+    return nil
+  }
 
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)

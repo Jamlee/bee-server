@@ -5,17 +5,17 @@ github.com/coreos/etcd/etcdserver/etcdserverpb
 github.com/coreos/etcd/mvcc/mvccpb
 github.com/coreos/etcd/pkg/types
 # github.com/davyxu/cellnet v0.0.0-20181025100214-ebba2f27eee1
-github.com/davyxu/cellnet
+github.com/davyxu/cellnet/codec/binary
 github.com/davyxu/cellnet/codec/json
-github.com/davyxu/cellnet/peer
-github.com/davyxu/cellnet/peer/http
 github.com/davyxu/cellnet/peer/tcp
-github.com/davyxu/cellnet/proc
 github.com/davyxu/cellnet/proc/http
 github.com/davyxu/cellnet/proc/tcp
+github.com/davyxu/cellnet
 github.com/davyxu/cellnet/codec
-github.com/davyxu/cellnet/codec/binary
 github.com/davyxu/cellnet/util
+github.com/davyxu/cellnet/peer
+github.com/davyxu/cellnet/peer/http
+github.com/davyxu/cellnet/proc
 github.com/davyxu/cellnet/msglog
 github.com/davyxu/cellnet/relay
 github.com/davyxu/cellnet/rpc

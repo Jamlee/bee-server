@@ -1,16 +1,13 @@
 package server
 
 import (
+	"github.com/jamlee/bee-server/pkg"
 	"github.com/sirupsen/logrus"
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/peer"
 	"github.com/davyxu/cellnet/proc"
 
 	peerHttp "github.com/davyxu/cellnet/peer/http"
-	_ "github.com/davyxu/cellnet/proc/http"
-	_ "github.com/davyxu/cellnet/peer/tcp"
-	_ "github.com/davyxu/cellnet/proc/tcp"
-	_ "github.com/davyxu/cellnet/codec/json"
 )
 
 type StatusMsg struct {
@@ -39,7 +36,15 @@ func RunMasterEndpoint(peerAddress string) {
 	queue := cellnet.NewEventQueue()
 	tcpAcceptor := peer.NewGenericPeer("tcp.Acceptor", "master-endpoint", peerAddress, queue)
 	proc.BindProcessorHandler(tcpAcceptor, "tcp.ltv", func(ev cellnet.Event) {
-	})
+		switch msg := ev.Message().(type) {
+			case *cellnet.SessionAccepted: 
+				logrus.Debug("server accepted")
+			case *pkg.Ping:
+				logrus.Debugf("client recv %+v\n", msg)
+			case *cellnet.SessionClosed:
+				logrus.Debugf("session closed: ", ev.Session().ID())
+			}
+		})
 	tcpAcceptor.Start()
 	queue.StartLoop()
 }
