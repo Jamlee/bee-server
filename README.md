@@ -1,7 +1,7 @@
 bee-server
 ========
 
-## ***FILL THIS OUT WITH A USEFUL DESCRIPTION OF THIS REPO***
+[![CircleCI](https://circleci.com/gh/Jamlee/bee-server.svg?style=svg)](https://circleci.com/gh/Jamlee/bee-server)
 
 ## Building
 
