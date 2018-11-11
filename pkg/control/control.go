@@ -3,7 +3,6 @@ package control
 import (
 	"net/http"
 	"github.com/labstack/echo"
-	"github.com/sirupsen/logrus"
 )
 
 func StartServer(peerAddress string) {

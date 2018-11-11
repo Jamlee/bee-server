@@ -32,6 +32,12 @@ func main() {
 	app.Usage = "bee-server is a distrbuted server framework for real time game"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{Name: "d", Usage: "open debug log",},
+		cli.StringFlag{Name: "initial-cluster", Usage: "etcd initial cluster:" +
+			"etcd-1=http://127.0.0.1:2380,etcd-2=http://127.0.0.1:2380,etcd-3=http://127.0.0.1:2380",},
+		cli.StringFlag{Name: "initial-cluster-token", Usage: "etcd-token",},
+		cli.StringFlag{Name: "peer-url", Usage: "for example: http://localhost:2380", Value: "http://localhost:2380"},
+		cli.StringFlag{Name: "advertise-client-url", Usage: "for example: http://localhost:2379", Value: "http://localhost:2379"},
+		cli.StringFlag{Name: "name", Usage: "for example: default", Value: "default"},
 	}
 	app.Authors = []cli.Author{
 		cli.Author{
@@ -51,7 +57,8 @@ func main() {
 				cli.IntFlag{Name: "master-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
-				go startEtcd(waitEtcd, stop)
+				go startEtcd(c.GlobalString("name"), c.GlobalString("peer-url"),  c.GlobalString("advertise-client-url"),
+				 	c.String("initial-cluster"), c.String("initial-cluster-token"), waitEtcd, stop)
 				<- waitEtcd
 				go control.StartServer(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
 				server.RegisterMaster(c.String("address"), c.Int("master-port"))
@@ -68,7 +75,8 @@ func main() {
 				cli.IntFlag{Name: "server-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
-				go startEtcd(waitEtcd, stop)
+				go startEtcd(c.GlobalString("name"), c.GlobalString("peer-url"),  c.GlobalString("advertise-client-url"),
+				 	c.String("initial-cluster"), c.String("initial-cluster-token"), waitEtcd, stop)
 				<- waitEtcd
 				worker.RegisterWorker(c.String("server-address"), c.Int("server-port"))
 				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("server-address"), strconv.Itoa(c.Int("server-port"))))
@@ -87,8 +95,15 @@ func main() {
 }
 
 
-func startEtcd(isReady chan struct{}, stop chan struct{}) {
+func startEtcd(name string, advertiseClientURLs string, peerURLs string,
+		cluster string, clusterToken string, isReady chan struct{}, 
+		stop chan struct{}) {
+	embed.DefaultInitialAdvertisePeerURLs = peerURLs
+	embed.DefaultAdvertiseClientURLs = advertiseClientURLs
 	cfg := embed.NewConfig()
+	cfg.Name = name
+	cfg.InitialCluster = cluster
+	cfg.InitialClusterToken = clusterToken
 	cfg.Dir = "/tmp/default.etcd"
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
