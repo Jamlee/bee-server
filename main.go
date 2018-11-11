@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"go.etcd.io/etcd/embed"
 
 	// init the cellnet lib global variable
 	_ "github.com/davyxu/cellnet/codec/json"
@@ -14,13 +15,16 @@ import (
 	_ "github.com/davyxu/cellnet/proc/http"
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	_ "github.com/davyxu/cellnet/proc/tcp"
-	"github.com/jamlee/bee-server/server"
-	"github.com/jamlee/bee-server/worker"
+	"github.com/jamlee/bee-server/pkg/server"
+	"github.com/jamlee/bee-server/pkg/worker"
 )
 
 var VERSION = "v0.0.0-dev"
 
 func main() {
+	waitEtcd := make(chan struct{})
+	stop := make(chan struct{})
+
 	app := cli.NewApp()
 	app.Name = "bee-server"
 	app.Version = VERSION
@@ -46,6 +50,8 @@ func main() {
 				cli.IntFlag{Name: "master-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
+				go startEtcd(waitEtcd, stop)
+				<- waitEtcd
 				server.RegisterMaster(c.String("address"), c.Int("master-port"))
 				server.RunMasterEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("master-port"))))
 				server.RunControlEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
@@ -61,6 +67,8 @@ func main() {
 				cli.IntFlag{Name: "server-port", Value: 10002, Usage: "listen port",},
       },
       Action:  func(c *cli.Context) error {
+				go startEtcd(waitEtcd, stop)
+				<- waitEtcd
 				worker.RegisterWorker(c.String("server-address"), c.Int("server-port"))
 				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("server-address"), strconv.Itoa(c.Int("server-port"))))
 				return nil
@@ -68,11 +76,30 @@ func main() {
 		},
 	}
 	app.Before = func(c *cli.Context) error {
-		logrus.SetLevel(logrus.WarnLevel)
+		logrus.SetLevel(logrus.InfoLevel)
     return nil
   }
 
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+
+func startEtcd(isReady chan struct{}, stop chan struct{}) {
+	cfg := embed.NewConfig()
+	cfg.Dir = "/tmp/default.etcd"
+	e, err := embed.StartEtcd(cfg)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer e.Close()
+	select {
+	case <-e.Server.ReadyNotify():
+		logrus.Info("Server is ready!")
+		isReady <-struct{}{}
+	case <-stop:
+		e.Server.Stop()
+	}
+	logrus.Fatal(<-e.Err())
 }
