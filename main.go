@@ -17,6 +17,7 @@ import (
 	_ "github.com/davyxu/cellnet/proc/tcp"
 	"github.com/jamlee/bee-server/pkg/server"
 	"github.com/jamlee/bee-server/pkg/worker"
+	"github.com/jamlee/bee-server/pkg/control"
 )
 
 var VERSION = "v0.0.0-dev"
@@ -52,9 +53,9 @@ func main() {
       Action:  func(c *cli.Context) error {
 				go startEtcd(waitEtcd, stop)
 				<- waitEtcd
+				go control.StartServer(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
 				server.RegisterMaster(c.String("address"), c.Int("master-port"))
 				server.RunMasterEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("master-port"))))
-				server.RunControlEndpoint(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
         return nil
       },
 		},
@@ -96,7 +97,7 @@ func startEtcd(isReady chan struct{}, stop chan struct{}) {
 	defer e.Close()
 	select {
 	case <-e.Server.ReadyNotify():
-		logrus.Info("Server is ready!")
+		logrus.Info("Etcd Server is ready!")
 		isReady <-struct{}{}
 	case <-stop:
 		e.Server.Stop()

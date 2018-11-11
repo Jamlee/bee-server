@@ -1,6 +1,7 @@
 module github.com/jamlee/bee-server
 
 require (
+	github.com/labstack/echo v3.3.5+incompatible
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/coreos/bbolt v1.3.0 // indirect
 	github.com/coreos/etcd v3.3.10+incompatible // indirect
