@@ -16,6 +16,7 @@ type tcpAcceptor struct {
 	peer.CoreRunningTag
 	peer.CoreProcBundle
 	peer.CoreTCPSocketOption
+	peer.CoreCaptureIOPanic
 
 	// 保存侦听器
 	listener net.Listener
@@ -43,13 +44,13 @@ func (self *tcpAcceptor) Start() cellnet.Peer {
 		return self
 	}
 
-	ln, err := util.DetectPort(self.Address(), func(s string) (interface{}, error) {
-		return net.Listen("tcp", s)
+	ln, err := util.DetectPort(self.Address(), func(a *util.Address) (interface{}, error) {
+		return net.Listen("tcp", a.HostPort())
 	})
 
 	if err != nil {
 
-		log.Errorf("#tcp.listen failed(%s) %v", self.NameOrAddress(), err.Error())
+		log.Errorf("#tcp.listen failed(%s) %v", self.Name(), err.Error())
 
 		self.SetRunning(false)
 
@@ -91,7 +92,7 @@ func (self *tcpAcceptor) accept() {
 
 			// 调试状态时, 才打出accept的具体错误
 			if log.IsDebugEnabled() {
-				log.Errorf("#tcp.accept failed(%s) %v", self.NameOrAddress(), err.Error())
+				log.Errorf("#tcp.accept failed(%s) %v", self.Name(), err.Error())
 			}
 
 			break
@@ -116,7 +117,10 @@ func (self *tcpAcceptor) onNewSession(conn net.Conn) {
 
 	ses.Start()
 
-	self.PostEvent(&cellnet.RecvMsgEvent{ses, &cellnet.SessionAccepted{}})
+	self.ProcEvent(&cellnet.RecvMsgEvent{
+		Ses: ses,
+		Msg: &cellnet.SessionAccepted{},
+	})
 }
 
 // 停止侦听器

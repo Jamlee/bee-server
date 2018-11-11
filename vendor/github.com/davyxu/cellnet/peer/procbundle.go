@@ -9,7 +9,7 @@ import (
 type MessagePoster interface {
 
 	// 投递一个消息到Hooker之前
-	PostEvent(ev cellnet.Event)
+	ProcEvent(ev cellnet.Event)
 }
 
 type CoreProcBundle struct {
@@ -56,7 +56,7 @@ func (self *CoreProcBundle) SendMessage(ev cellnet.Event) {
 	}
 }
 
-func (self *CoreProcBundle) PostEvent(ev cellnet.Event) {
+func (self *CoreProcBundle) ProcEvent(ev cellnet.Event) {
 
 	if self.hooker != nil {
 		ev = self.hooker.OnInboundEvent(ev)

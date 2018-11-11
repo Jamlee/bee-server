@@ -7,10 +7,10 @@ require (
 	github.com/coreos/go-semver v0.2.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142 // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
-	github.com/davyxu/cellnet v0.0.0-20181025100214-ebba2f27eee1
+	github.com/davyxu/cellnet v0.0.0-20181109151218-c9ddeeedf7ba
 	github.com/davyxu/golog v0.0.0-20180706014138-e51e2504138b // indirect
 	github.com/davyxu/goobjfmt v0.0.0-20180817064625-baf5de0715b1 // indirect
-	github.com/davyxu/protoplus v0.0.0-20181026032816-9e740529cb1e // indirect
+	github.com/davyxu/protoplus v0.0.0-20181101064152-7f5ef06bcaec // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gogo/protobuf v1.1.1 // indirect
@@ -21,8 +21,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.5.1 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
-	github.com/mitchellh/go-homedir v1.0.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/prometheus/client_golang v0.9.1 // indirect
 	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
 	github.com/prometheus/common v0.0.0-20181109100915-0b1957f9d949 // indirect
@@ -37,6 +35,7 @@ require (
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1 // indirect
+	golang.org/x/net v0.0.0-20181108082009-03003ca0c849 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	google.golang.org/grpc v1.16.0 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
