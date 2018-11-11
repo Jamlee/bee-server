@@ -11,7 +11,7 @@ import (
 )
 
 type StatusMsg struct {
-	Name string `json: name`
+	Name string `json:"name"`
 }
 
 func RunControlEndpoint(peerAddress string) {
