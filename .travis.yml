@@ -2,4 +2,4 @@ language: go
 go:
   - "1.11.x"
   - master
-script: go get -v -t -d ./... ; go build;
+script: go get; go build;
