@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"fmt"
 	"os"
+	"net/url"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -95,16 +96,21 @@ func main() {
 }
 
 
-func startEtcd(name string, advertiseClientURLs string, peerURLs string,
+func startEtcd(name string, advertiseClientURL string, peerURL string,
 		cluster string, clusterToken string, isReady chan struct{}, 
 		stop chan struct{}) {
-	embed.DefaultInitialAdvertisePeerURLs = peerURLs
-	embed.DefaultAdvertiseClientURLs = advertiseClientURLs
+
+	lpUrl, _ := url.Parse(peerURL)
+	acUrl, _ := url.Parse(advertiseClientURL)
+
 	cfg := embed.NewConfig()
 	cfg.Name = name
 	cfg.InitialCluster = cluster
 	cfg.InitialClusterToken = clusterToken
-	cfg.Dir = "/tmp/default.etcd"
+	cfg.LPUrls = []url.URL{*acUrl}
+	cfg.LCUrls = []url.URL{*lpUrl}
+	cfg.ACUrls = []url.URL{*lpUrl}
+	cfg.Dir = "/tmp/etcd/" + name
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
 		logrus.Fatal(err)
