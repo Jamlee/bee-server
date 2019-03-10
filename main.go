@@ -33,12 +33,13 @@ func main() {
 	app.Usage = "bee-server is a distrbuted server framework for real time game"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{Name: "d", Usage: "open debug log"},
-		cli.StringFlag{Name: "initial-cluster", Usage: "etcd initial cluster:" +
-			"etcd-1=http://127.0.0.1:2380,etcd-2=http://127.0.0.1:2380,etcd-3=http://127.0.0.1:2380"},
-		cli.StringFlag{Name: "initial-cluster-token", Usage: "etcd-token"},
-		cli.StringFlag{Name: "peer-url", Usage: "for example: http://localhost:2380", Value: "http://localhost:2380"},
-		cli.StringFlag{Name: "advertise-client-url", Usage: "for example: http://localhost:2379", Value: "http://localhost:2379"},
-		cli.StringFlag{Name: "name", Usage: "for example: default", Value: "default"},
+		cli.StringFlag{Name: "initial-cluster", Usage: "etcd initial cluster", Value: "node1=http://127.0.0.1:2380,node2=http://127.0.0.1:2380,node3=http://127.0.0.1:2380"},
+		cli.StringFlag{Name: "initial-cluster-token", Usage: "token"},
+		cli.StringFlag{Name: "listen-peer-urls", Usage: "for example: http://localhost:2380", Value: "http://localhost:2380"},
+		cli.StringFlag{Name: "listen-client-urls", Usage: "for example: http://localhost:2379", Value: "http://localhost:2379"},
+		cli.StringFlag{Name: "initial-advertise-peer-urls", Usage: "for example: http://localhost:2380", Value: "http://localhost:2380"},
+		cli.StringFlag{Name: "advertise-client-urls", Usage: "for example: http://localhost:2379", Value: "http://localhost:2379"},
+		cli.StringFlag{Name: "name", Usage: "for example: default", Value: "node1"},
 	}
 	app.Authors = []cli.Author{
 		cli.Author{
@@ -58,8 +59,9 @@ func main() {
 				cli.IntFlag{Name: "master-port", Value: 10002, Usage: "listen port"},
 			},
 			Action: func(c *cli.Context) error {
-				go startEtcd(c.GlobalString("name"), c.GlobalString("peer-url"), c.GlobalString("advertise-client-url"),
-					c.String("initial-cluster"), c.String("initial-cluster-token"), waitEtcd, stop)
+				go startEtcd(c.GlobalString("name"), c.GlobalString("listen-peer-urls"), c.GlobalString("listen-client-urls"),
+					c.GlobalString("initial-advertise-peer-urls"), c.GlobalString("advertise-client-urls"),
+					c.GlobalString("initial-cluster"), c.GlobalString("initial-cluster-token"), waitEtcd, stop)
 				<-waitEtcd
 				go control.StartServer(fmt.Sprintf("%s:%s", c.String("address"), strconv.Itoa(c.Int("web-port"))))
 				server.RegisterMaster(c.String("address"), c.Int("master-port"))
@@ -76,8 +78,10 @@ func main() {
 				cli.IntFlag{Name: "server-port", Value: 10002, Usage: "listen port"},
 			},
 			Action: func(c *cli.Context) error {
-				go startEtcd(c.GlobalString("name"), c.GlobalString("peer-url"), c.GlobalString("advertise-client-url"),
-					c.String("initial-cluster"), c.String("initial-cluster-token"), waitEtcd, stop)
+				fmt.Println(c.String("initial-cluster"))
+				go startEtcd(c.GlobalString("name"), c.GlobalString("listen-peer-urls"), c.GlobalString("listen-client-urls"),
+					c.GlobalString("initial-advertise-peer-urls"), c.GlobalString("advertise-client-urls"),
+					c.GlobalString("initial-cluster"), c.GlobalString("initial-cluster-token"), waitEtcd, stop)
 				<-waitEtcd
 				worker.RegisterWorker(c.String("server-address"), c.Int("server-port"))
 				worker.RunWorkerClient(fmt.Sprintf("%s:%s", c.String("server-address"), strconv.Itoa(c.Int("server-port"))))
@@ -95,11 +99,11 @@ func main() {
 	}
 }
 
-func startEtcd(name string, advertiseClientURL string, peerURL string,
-	cluster string, clusterToken string, isReady chan struct{},
-	stop chan struct{}) {
-
-	lpUrl, err := url.Parse(peerURL)
+func startEtcd(name string, listenPeerURL string, listenClientURL string, advertisePeerURL string, advertiseClientURL string,
+	cluster string, clusterToken string, isReady chan struct{}, stop chan struct{}) {
+	lpUrl, err := url.Parse(listenPeerURL)
+	apUrl, err := url.Parse(advertisePeerURL)
+	lcUrl, err := url.Parse(listenClientURL)
 	acUrl, err := url.Parse(advertiseClientURL)
 	if err != err {
 		logrus.Fatal(err)
@@ -109,9 +113,10 @@ func startEtcd(name string, advertiseClientURL string, peerURL string,
 	cfg.Name = name
 	cfg.InitialCluster = cluster
 	cfg.InitialClusterToken = clusterToken
-	cfg.LPUrls = []url.URL{*acUrl}
-	cfg.LCUrls = []url.URL{*lpUrl}
-	cfg.ACUrls = []url.URL{*lpUrl}
+	cfg.ACUrls = []url.URL{*acUrl}
+	cfg.LCUrls = []url.URL{*lcUrl}
+	cfg.APUrls = []url.URL{*apUrl}
+	cfg.LPUrls = []url.URL{*lpUrl}
 	cfg.Dir = "/tmp/etcd/" + name
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
