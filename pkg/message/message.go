@@ -6,6 +6,7 @@ import (
 
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	_ "github.com/davyxu/cellnet/codec/binary"
 	"github.com/davyxu/cellnet/util"
 )
 

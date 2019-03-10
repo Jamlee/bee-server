@@ -1,23 +1,23 @@
 package server
 
 import (
-	"encoding/json"
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"go.etcd.io/etcd/clientv3"
 	"github.com/sirupsen/logrus"
+	"go.etcd.io/etcd/clientv3"
 )
 
 type Service struct {
-	ID 		string
-	Type	string
-	Info 	Serverinfo
+	ID   string
+	Type string
+	Info Serverinfo
 }
 
 type Serverinfo struct {
-	Id   string    `json:"id"`
-	Bind string   `json:"Bind"`
+	Id   string `json:"id"`
+	Bind string `json:"Bind"`
 	Port int    `json:"port"`
 }
 
@@ -29,9 +29,9 @@ func RegisterMaster(address string, port int) {
 	prefix := "/services/server"
 	key := fmt.Sprintf("%s/%s:%d", prefix, address, port)
 	s := &Service{
-			ID: key,
-			Type: "server",
-			Info: Serverinfo{Id: key, Bind: address, Port: port},
+		ID:   key,
+		Type: "server",
+		Info: Serverinfo{Id: key, Bind: address, Port: port},
 	}
 
 	// register to etcd
@@ -39,7 +39,7 @@ func RegisterMaster(address string, port int) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	
+
 	// write health key
 	healthKey := fmt.Sprintf("%s/health", key)
 	_, err = cli.Put(context.TODO(), healthKey, "")
@@ -49,7 +49,7 @@ func RegisterMaster(address string, port int) {
 
 	// write info key
 	infoKey := fmt.Sprintf("%s/info", key)
-	info, _ := json.Marshal(s.Info)
+	info, err := json.Marshal(s.Info)
 	_, err = cli.Put(context.TODO(), infoKey, string(info), clientv3.WithLease(resp.ID))
 	if err != nil {
 		logrus.Fatal(err)

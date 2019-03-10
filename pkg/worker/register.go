@@ -1,27 +1,25 @@
 package worker
 
 import (
-	"encoding/json"
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"go.etcd.io/etcd/clientv3"
 	"github.com/sirupsen/logrus"
+	"go.etcd.io/etcd/clientv3"
 )
 
-
 type Service struct {
-	ID 		string
-	Type	string
-	Info 	Serverinfo
+	ID   string
+	Type string
+	Info Serverinfo
 }
 
 type Serverinfo struct {
-	Id   string    `json:"id"`
-	Bind string   `json:"Bind"`
+	Id   string `json:"id"`
+	Bind string `json:"Bind"`
 	Port int    `json:"port"`
 }
-
 
 func RegisterWorker(address string, port int) {
 	cli, err := clientv3.New(clientv3.Config{Endpoints: []string{"127.0.0.1:2379"}})
@@ -31,9 +29,9 @@ func RegisterWorker(address string, port int) {
 	prefix := "/services/worker"
 	key := fmt.Sprintf("%s/%s:%d", prefix, address, port)
 	s := &Service{
-			ID: key,
-			Type: "worker",
-			Info: Serverinfo{Id: key, Bind: address, Port: port},
+		ID:   key,
+		Type: "worker",
+		Info: Serverinfo{Id: key, Bind: address, Port: port},
 	}
 
 	// register to etcd
@@ -41,7 +39,7 @@ func RegisterWorker(address string, port int) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	
+
 	// write health key
 	healthKey := fmt.Sprintf("%s/health", key)
 	_, err = cli.Put(context.TODO(), healthKey, "")
@@ -51,7 +49,7 @@ func RegisterWorker(address string, port int) {
 
 	// write info key
 	infoKey := fmt.Sprintf("%s/info", key)
-	info, _ := json.Marshal(s.Info)
+	info, err := json.Marshal(s.Info)
 	_, err = cli.Put(context.TODO(), infoKey, string(info), clientv3.WithLease(resp.ID))
 	if err != nil {
 		logrus.Fatal(err)
